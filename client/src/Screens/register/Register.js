@@ -6,6 +6,8 @@ import Loader from "../../Components/loader/Loader";
 import Error from "../../Components/error/Error";
 import Success from "../../Components/success/Success";
 import Swal from "sweetalert2";
+import Header from "../../Components/header/Header";
+import Footer from "../../Components/footer/Footer";
 
 function Register() {
     const [firstName, setfirstName] = useState("");
@@ -29,12 +31,12 @@ function Register() {
 
         if (!firstName.trim()) {
             isValid = false;
-            errors["firstName"] = "FirstName is required";
+            errors["firstName"] = "First name is required";
         }
 
         if (!lastName.trim()) {
             isValid = false;
-            errors["lastName"] = "LastName is required";
+            errors["lastName"] = "Last name is required";
         }
 
         if (!email.trim()) {
@@ -135,7 +137,7 @@ function Register() {
             setloading(true);
             const result = await axios.post(
                 "http://localhost:5000/user/register",
-                user
+                user,
             );
             setloading(false);
 

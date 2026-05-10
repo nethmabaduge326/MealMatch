@@ -3,7 +3,9 @@ const router = express.Router();
 const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const authMiddleware = require("../middleware/Auth");
+const {authenticate, authorize} = require("../middleware/Auth");
+
+// ----- PUBLIC ROUTES -----
 
 //regiter route
 router.post("/register", async (req, res) => {
@@ -32,7 +34,8 @@ router.post("/register", async (req, res) => {
         });
 
         await newUser.save();
-        res.status(200).json({
+        
+        return res.status(200).json({
             success: true,
             message: "User Registered Successfully",
         });
@@ -45,11 +48,23 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
-    try {
-        // fetch the user
-        const user = await User.findOne({ email });
+    // Validate request body
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Fields required!",
+        });
+    }
 
-        // compare the password
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found!",
+            });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res
@@ -57,35 +72,42 @@ router.post("/login", async (req, res) => {
                 .json({ message: "Invalid email or password" });
         }
 
-        // generate token
+        // Generate token
         const token = jwt.sign(
             {
                 userId: user._id,
                 userEmail: user.email,
+                userRole: user.role
             },
             process.env.ACCESS_TOKEN,
-            { expiresIn: "1h" }
+            { expiresIn: "1h" },
         );
 
-        // generate cookie
+        // Send cookie
         res.cookie("token", token, {
             httpOnly: true,
             secure: false,
             sameSite: "strict",
-        })
-            .status(200)
-            .json({
-                success: true,
-                message: "Login Successfully",
-                token,
-            });
+            maxAge: 3600000,
+        });
+
+        // Success
+        return res.status(200).json({
+            success: true,
+            message: "Login Successfully",
+            user: {
+                _id: user._id,
+                email: user.email,
+                role: user.role,
+            },
+        });
     } catch (error) {
-        return res.status(400).json({ error });
+        return res.status(500).json({ error });
     }
 });
 
 // logout route
-router.post("/logout", authMiddleware, async (req, res) => {
+router.post("/logout", authenticate, async (req, res) => {
     try {
         res.clearCookie("token", {
             httpOnly: true,
@@ -94,13 +116,27 @@ router.post("/logout", authMiddleware, async (req, res) => {
         });
 
         res.status(200).json({
-          success: true,
-          message: "Logged out successfully"
-        })
+            success: true,
+            message: "Logged out successfully",
+        });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
     }
 });
+
+// ----- SUPERADMIN + ADMIN ROUTES -----
+
+//count users
+router.get("/count",authenticate, authorize("superadmin", "admin"), async (req, res) => {
+    try {
+        const count = await User.countDocuments({ role: "customer" });
+        res.status(200).json({ count });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
 
 //get all users
 router.get("/getallusers", async (req, res) => {
@@ -199,16 +235,7 @@ router.patch("/deleteuser", async (req, res) => {
     }
 });
 
-//count users
-router.get("/count", async (req, res) => {
-    try {
-        const count = await User.countDocuments({ role: "user" });
-        res.status(200).json({ count });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Server error" });
-    }
-});
+
 
 /* // GET a single user by id
 router.get("/:userId", async (req, res) => {

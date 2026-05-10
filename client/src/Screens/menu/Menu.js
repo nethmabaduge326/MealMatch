@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import Header from "../header/Header";
-import Footer from "../footer/Footer";
+import Header from "../../Components/header/Header";
+import Footer from "../../Components/footer/Footer";
 import Pizza from "./Pizza";
 import axios from "axios";
 import Error from "../../Components/error/Error";
@@ -8,13 +8,13 @@ import Error from "../../Components/error/Error";
 function Menu() {
     const [pizzas, setPizzas] = useState([]);
     useEffect(() => {
-        axios.get("http://localhost:5000/api/products").then((result) => {
+        axios.get("http://localhost:5000/products").then((result) => {
             setPizzas(result.data);
         });
     }, []);
     const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-    if (!currentUser || currentUser.role !== "admin") {
+    if (!currentUser) {
         return <Error message="Please login" />;
     }
 

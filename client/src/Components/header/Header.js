@@ -3,135 +3,145 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import "./Header.css";
 import BrandLogo from "../BrandLogo/BrandLogo";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 
 function Header() {
-  const user = JSON.parse(localStorage.getItem("currentUser"));
-  console.log(user);
-  function logout() {
-    localStorage.removeItem("currentUser");
-    localStorage.clear();
-    window.location.href = "/login";
-  }
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    const navigate = useNavigate();
 
-  const location = useLocation();
-  const [isMenuPage, setIsMenuPage] = useState(false);
-  useEffect(() => {
-      setIsMenuPage(location.pathname === "/menu");
-  }, [location]);
+    const location = useLocation();
 
-  return (
-      <div className="Header">
-          <nav className="navbar navbar-expand-lg mclas">
-              {/* <a className="navbar-brand a1 tlogo" href="/">
-          MealMatch
-        </a> */}
-              <BrandLogo />
-              <button
-                  className="navbar-toggler"
-                  type="button"
-                  data-bs-toggle="collapse"
-                  data-bs-target="#navbarNav"
-                  aria-controls="navbarNav"
-                  aria-expanded="false"
-                  aria-label="Toggle navigation"
-              >
-                  <span className="navbar-toggler-icon">
-                      <i className="fa-solid fa-bars"> </i>
-                  </span>
-              </button>
-              <div
-                  className="collapse navbar-collapse"
-                  id="navbarNav"
-                  style={{ flex: "revert" }}
-              >
-                  <ul className="navbar-nav ld">
-                      {user ? (
-                          <>
-                              {isMenuPage && (
-                                  <div className="cart-btn">
-                                      <Link to="/cart">
-                                          <button
-                                              style={{
-                                                  backgroundColor:
-                                                      "transparent",
-                                                  border: "none",
-                                                  position: "relative",
-                                                  top: "5px",
-                                                  right: "25px",
-                                              }}
-                                          >
-                                              <ShoppingCartIcon fontSize="small" />
-                                          </button>
-                                      </Link>
-                                  </div>
-                              )}
+    const linkStyle = (path) => ({
+        borderBottom: location.pathname === path ? "2px solid #5E5BFF" : "none",
+        paddingBottom: "2px",
+    });
 
-                              <div className="dropdown dropstart">
-                                  <button
-                                      className="btn btn-secondary dropdown-toggle"
-                                      type="button"
-                                      id="dropdownMenuButton1"
-                                      data-bs-toggle="dropdown"
-                                      aria-expanded="false"
-                                  >
-                                      <i className="fa fa-user"></i>
-                                      <AccountCircleIcon />
-                                      {user.firstName}
-                                  </button>
-                                  <div
-                                      className="dropdown-menu"
-                                      aria-labelledby="dropdownMenuButton"
-                                  >
-                                      <a
-                                          className="dropdown-item plists"
-                                          href="/menu"
-                                      >
-                                          Home
-                                      </a>
-                                      <a
-                                          className="dropdown-item plists"
-                                          href="/profile"
-                                      >
-                                          Profile
-                                      </a>
-                                      {user.role === "admin" ? (
-                                          <a
-                                              className="dropdown-item plists"
-                                              href="/dashboard"
-                                          >
-                                              Admin
-                                          </a>
-                                      ) : null}
-                                      <a
-                                          className="dropdown-item plists"
-                                          href="/login"
-                                          onClick={logout}
-                                      >
-                                          Logout
-                                      </a>
-                                  </div>
-                              </div>
-                          </>
-                      ) : (
-                          <>
-                              <li className="nav-item">
-                                  <a className="nav-link a1" href="/register">
-                                      Register
-                                  </a>
-                              </li>
-                              <li className="nav-item">
-                                  <a className="nav-link a1" href="/login">
-                                      Login
-                                  </a>
-                              </li>
-                          </>
-                      )}
-                  </ul>
-              </div>
-          </nav>
-      </div>
-  );
+    async function logout() {
+        try {
+            await axios.post(
+                "http://localhost:5000/user/logout",
+                {},
+                { withCredentials: true },
+            );
+        } catch (error) {
+            console.log(error);
+        } finally {
+            localStorage.clear();
+            navigate("/login");
+        }
+    }
+
+    return (
+        <div className="Header">
+            <nav className="navbar navbar-expand-lg mclas">
+                <BrandLogo />
+                <button
+                    className="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarNav"
+                    aria-controls="navbarNav"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span className="navbar-toggler-icon">
+                        <i className="fa-solid fa-bars"></i>
+                    </span>
+                </button>
+                <div
+                    className="collapse navbar-collapse"
+                    id="navbarNav"
+                    style={{ flex: "revert" }}
+                >
+                    <ul className="navbar-nav ld" style={{gap: "16px"}}>
+                        {user ? (
+                            <>
+                                {/* Menu */}
+                                <li className="nav-item">
+                                    <Link
+                                        to="/menu"
+                                        className="nav-link a1"
+                                        style={linkStyle("/menu")}
+                                    >
+                                        Menu
+                                    </Link>
+                                </li>
+
+                                {/* Cart icon */}
+                                <li className="nav-item">
+                                    <Link
+                                        to="/cart"
+                                        className="nav-link a1"
+                                        style={linkStyle("/cart")}
+                                    >
+                                        My Cart
+                                    </Link>
+                                </li>
+
+                                {/* Profile */}
+                                <li className="nav-item">
+                                    <Link
+                                        to="/profile"
+                                        className="nav-link a1"
+                                        style={linkStyle("/profile")}
+                                    >
+                                        Profile
+                                    </Link>
+                                </li>
+
+                                {/* Dashboard — admin + superadmin විතරක් */}
+                                {["admin", "superadmin"].includes(
+                                    user.role,
+                                ) && (
+                                    <li className="nav-item">
+                                        <Link
+                                            to="/dashboard"
+                                            className="nav-link a1"
+                                            style={linkStyle("/dashboard")}
+                                        >
+                                            Dashboard
+                                        </Link>
+                                    </li>
+                                )}
+
+                                {/* Logout */}
+                                <li className="nav-item">
+                                    <button
+                                        className="nav-link a1"
+                                        style={{
+                                            background: "none",
+                                            border: "none",
+                                            cursor: "pointer",
+                                        }}
+                                        onClick={logout}
+                                    >
+                                        Logout
+                                    </button>
+                                </li>
+                            </>
+                        ) : (
+                            <>
+                                <li className="nav-item">
+                                    <Link
+                                        to="/register"
+                                        className="nav-link a1"
+                                    >
+                                        Register
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link to="/login" className="nav-link a1">
+                                        Login
+                                    </Link>
+                                </li>
+                            </>
+                        )}
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    );
 }
 
 export default Header;

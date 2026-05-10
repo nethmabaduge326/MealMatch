@@ -9,22 +9,25 @@ require("dotenv").config();
 const app = express();
 
 //app middleware
-app.use(cors());
 app.use(bodyParser.json());
-app.use(cookieParser())
+app.use(cookieParser());
+app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true
+}));
 
 //route imports
 const userRoute = require("./routes/userRoutes");
-const kitchenRoutes = require("./routes/kitchenRoutes");
 const productRoutes = require("./routes/productRoutes");
+const kitchenRoutes = require("./routes/kitchenRoutes");
 const billInfoRoutes = require("./routes/billInfoRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 
 //routes
 app.use("/user", userRoute);
+app.use("/products", productRoutes);
 app.use("/api/kitchen", kitchenRoutes);
-app.use("/api/products", productRoutes);
 app.use("/api/billInfo", billInfoRoutes);
 app.use("/api/order", orderRoutes);
 app.use("/api/cart", cartRoutes);

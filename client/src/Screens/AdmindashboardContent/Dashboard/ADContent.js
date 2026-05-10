@@ -17,7 +17,7 @@ function ADContent() {
     async function fetchCustomerCount() {
       try {
         setloading(true);
-        const response = await fetch("/api/users/count");
+        const response = await fetch("http://localhost:5000/user/count");
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -38,7 +38,9 @@ function ADContent() {
     async function fetchSalesCount() {
       try {
         setloading(true);
-        const response = await fetch("/api/kitchen/complete/today");
+        const response = await fetch(
+            "http://localhost:5000/api/kitchen/complete/today",
+        );
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -59,7 +61,7 @@ function ADContent() {
     async function fetchProductCount() {
       try {
         setloading(true);
-        const response = await fetch("/api/products/allcount");
+        const response = await fetch("http://localhost:5000/products/allcount");
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }

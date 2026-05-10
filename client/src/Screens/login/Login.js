@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Loader from "../../Components/loader/Loader";
 import Error from "../../Components/error/Error";
 import "./Login.css";
 
-import BrandLogo from "../BrandLogo/BrandLogo";
+import BrandLogo from "../../Components/BrandLogo/BrandLogo";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -13,6 +13,7 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [showLogin, setShowLogin] = useState(true);
+    const navigate = useNavigate();
 
     async function handleLogin(e) {
         e.preventDefault();
@@ -24,28 +25,24 @@ function Login() {
         try {
             setLoading(true);
             setShowLogin(false);
-            const { data, status } = await axios.post(
-                "http://localhost:5000/user/login",
-                {
-                    email,
-                    password,
-                },
-                { withCredentials: true }
-            );
-            setLoading(false);
-            setShowLogin(true);
 
-            if (status === 200) {
-                localStorage.setItem("currentUser", JSON.stringify(data));
-                window.location.href = "/menu";
+            const {data} = await axios.post(
+                "http://localhost:5000/user/login",
+                { email, password },
+                { withCredentials: true },
+            );
+
+            localStorage.setItem("currentUser", JSON.stringify(data.user))
+            if (data.user.role === "customer") {
+                navigate("/menu");
             } else {
-                setError("Invalid Credentials.");
+                navigate("/dashboard");
             }
         } catch (error) {
-            console.log(error);
+            setError(error.response?.data?.message || "Something went wrong.");
+        } finally {
             setLoading(false);
             setShowLogin(true);
-            setError("Something went wrong. Please try again later.");
         }
     }
 

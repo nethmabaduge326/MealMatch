@@ -8,8 +8,8 @@ function DashboardLayout(props) {
 
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
 
-  if (!currentUser || currentUser.role !== 'admin') {
-    return <Error message="You are not authorized to access this page" />;
+  if (!currentUser || !["admin", "superadmin"].includes(currentUser.role)) {
+      return <Error message="You are not authorized to access this page" />;
   }
 
   return (
